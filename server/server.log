@@ -1,0 +1,8 @@
+﻿
+> nsp-backend@0.0.1 start
+> node src/index.js
+
+[db] connecting to mongo (attempt 1/6)
+[db] connected to mongo
+State Nodal Officer seeded: StateOffice@gmail.com
+API listening on http://localhost:5174
