@@ -1,1 +1,0 @@
-# National-Scholarship-Portal
