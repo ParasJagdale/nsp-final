@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Login from './Login'
 import Navbar from '../components/Navbar'
@@ -13,6 +14,23 @@ const updates = [
 
 
 export default function Home() {
+  const [checkAppId, setCheckAppId] = useState('');
+  const [checkStatus, setCheckStatus] = useState(null);
+
+  const handleCheckStatus = async (e) => {
+    e.preventDefault();
+    if (!checkAppId) return;
+    try {
+      const res = await fetch(`/api/auth/scholarship/status/${checkAppId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to check status');
+      setCheckStatus(data.app.status === 'Approved' ? 'Scholarship Granted' : data.app.status);
+    } catch (err) {
+      alert(err.message);
+      setCheckStatus(null);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -52,11 +70,20 @@ export default function Home() {
           {/* Quick Status Checker Section */}
           <div className="card border-l-4 border-green-400">
             <h2 className="section-title" style={{borderColor:'#34d399', color:'#059669'}}>Quick Status Checker</h2>
-            <form className="flex flex-col gap-2 mt-2" onSubmit={e => {e.preventDefault(); const id = e.target.elements.appid.value.trim(); if(id) window.location.href = `/status/${id}`}}>
+            <form className="flex flex-col gap-2 mt-2" onSubmit={handleCheckStatus}>
               <label htmlFor="appid" className="text-xs font-semibold text-gray-600">Enter Application ID</label>
-              <input id="appid" name="appid" className="form-input" placeholder="e.g. NSP2024XXXXXX" required />
+              <input id="appid" name="appid" className="form-input" placeholder="e.g. NSP2024XXXXXX" required value={checkAppId} onChange={e => setCheckAppId(e.target.value)} />
               <button type="submit" className="btn-primary mt-2">Check Status</button>
             </form>
+            {checkStatus && (
+              <div className={`mt-3 text-sm font-bold p-2 rounded text-center ${
+                checkStatus === 'Scholarship Granted' ? 'bg-green-100 text-green-700' : 
+                checkStatus === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                'bg-yellow-100 text-yellow-700'
+              }`}>
+                Status: {checkStatus.includes('Pending') ? 'Under Review' : checkStatus}
+              </div>
+            )}
             <div className="text-xs text-gray-500 mt-2">Track your scholarship application status instantly.</div>
           </div>
           <div className="card border-l-4 border-secondary">

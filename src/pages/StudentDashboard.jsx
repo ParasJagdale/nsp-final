@@ -71,6 +71,14 @@ export default function StudentDashboard() {
 			});
 	}, []);
 
+	const approvedApps = applications.filter(a => a.status === 'Approved');
+	const totalAmount = approvedApps.reduce((sum, app) => {
+		const admission = Number(app.data?.admissionFee) || 0;
+		const tuition = Number(app.data?.tuitionFee) || 0;
+		const other = Number(app.data?.otherFee) || 0;
+		return sum + admission + tuition + other;
+	}, 0);
+
 	return (
 		<div className="min-h-screen flex flex-col">
 			<Navbar userType="student" onLogout={null} />
@@ -90,12 +98,12 @@ export default function StudentDashboard() {
 					<div className="bg-white rounded-lg shadow flex flex-col items-center p-4 border-t-4 border-green-500">
 						<span className="text-2xl">✅</span>
 						<div className="text-xs text-gray-500 mt-1">Approved Applications</div>
-						<div className="text-xl font-bold text-green-700">2</div>
+						<div className="text-xl font-bold text-green-700">{approvedApps.length}</div>
 					</div>
 					<div className="bg-white rounded-lg shadow flex flex-col items-center p-4 border-t-4 border-emerald-500">
 						<span className="text-2xl">💰</span>
 						<div className="text-xs text-gray-500 mt-1">Total Scholarship Amount</div>
-						<div className="text-xl font-bold text-emerald-700">₹12,000</div>
+						<div className="text-xl font-bold text-emerald-700">₹{totalAmount.toLocaleString('en-IN')}</div>
 					</div>
 				</div>
 			</div>

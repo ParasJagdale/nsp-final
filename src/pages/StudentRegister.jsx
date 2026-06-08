@@ -3,8 +3,45 @@ import { Navigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-const states = ['Maharashtra','Delhi','Karnataka','Tamil Nadu','Uttar Pradesh','Gujarat','Rajasthan','West Bengal']
-const districts = ['Mumbai','Pune','Nashik','Nagpur','Aurangabad','Thane','Solapur']
+const states = ['Maharashtra']
+const districts = [
+  "Ahmednagar (Ahilyanagar)",
+  "Akola",
+  "Amravati",
+  "Aurangabad (Chhatrapati Sambhajinagar)",
+  "Beed",
+  "Bhandara",
+  "Buldhana",
+  "Chandrapur",
+  "Dhule",
+  "Gadchiroli",
+  "Gondia",
+  "Hingoli",
+  "Jalgaon",
+  "Jalna",
+  "Kolhapur",
+  "Latur",
+  "Mumbai City",
+  "Mumbai Suburban",
+  "Nagpur",
+  "Nanded",
+  "Nandurbar",
+  "Nashik",
+  "Osmanabad (Dharashiv)",
+  "Palghar",
+  "Parbhani",
+  "Pune",
+  "Raigad",
+  "Ratnagiri",
+  "Sangli",
+  "Satara",
+  "Sindhudurg",
+  "Solapur",
+  "Thane",
+  "Wardha",
+  "Washim",
+  "Yavatmal"
+]
 
 export default function StudentRegister() {
   const [redirect, setRedirect] = useState(false)
@@ -120,7 +157,7 @@ export default function StudentRegister() {
               </div>
               <div>
                 <label className="form-label">Bank IFSC Code *</label>
-                <input className="form-input" value={form.bankIfsc} onChange={e => set('bankIfsc', e.target.value)} required />
+                <input className="form-input" value={form.bankIfsc} onChange={e => set('bankIfsc', e.target.value)} pattern="^[A-Za-z]{4}0[A-Za-z0-9]{6}$" placeholder="e.g. SBIN0001234" required />
               </div>
               <div>
                 <label className="form-label">Bank Account Number *</label>

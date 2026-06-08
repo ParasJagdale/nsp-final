@@ -3,8 +3,45 @@ import { Navigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-const states = ['Maharashtra','Delhi','Karnataka','Tamil Nadu','Uttar Pradesh','Gujarat','Rajasthan']
-const districts = ['Mumbai','Pune','Nashik','Nagpur','Aurangabad','Thane','Solapur']
+const states = ['Maharashtra']
+const districts = [
+  "Ahmednagar (Ahilyanagar)",
+  "Akola",
+  "Amravati",
+  "Aurangabad (Chhatrapati Sambhajinagar)",
+  "Beed",
+  "Bhandara",
+  "Buldhana",
+  "Chandrapur",
+  "Dhule",
+  "Gadchiroli",
+  "Gondia",
+  "Hingoli",
+  "Jalgaon",
+  "Jalna",
+  "Kolhapur",
+  "Latur",
+  "Mumbai City",
+  "Mumbai Suburban",
+  "Nagpur",
+  "Nanded",
+  "Nandurbar",
+  "Nashik",
+  "Osmanabad (Dharashiv)",
+  "Palghar",
+  "Parbhani",
+  "Pune",
+  "Raigad",
+  "Ratnagiri",
+  "Sangli",
+  "Satara",
+  "Sindhudurg",
+  "Solapur",
+  "Thane",
+  "Wardha",
+  "Washim",
+  "Yavatmal"
+]
 const years = Array.from({length:30}, (_,i) => 2024 - i)
 
 export default function InstituteRegister() {

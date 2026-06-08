@@ -3,8 +3,45 @@ import { Navigate, useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-const states = ['Maharashtra','Delhi','Karnataka','Tamil Nadu','Uttar Pradesh','Gujarat']
-const districts = ['Mumbai','Pune','Nashik','Nagpur','Aurangabad','Thane']
+const states = ['Maharashtra']
+const districts = [
+  "Ahmednagar (Ahilyanagar)",
+  "Akola",
+  "Amravati",
+  "Aurangabad (Chhatrapati Sambhajinagar)",
+  "Beed",
+  "Bhandara",
+  "Buldhana",
+  "Chandrapur",
+  "Dhule",
+  "Gadchiroli",
+  "Gondia",
+  "Hingoli",
+  "Jalgaon",
+  "Jalna",
+  "Kolhapur",
+  "Latur",
+  "Mumbai City",
+  "Mumbai Suburban",
+  "Nagpur",
+  "Nanded",
+  "Nandurbar",
+  "Nashik",
+  "Osmanabad (Dharashiv)",
+  "Palghar",
+  "Parbhani",
+  "Pune",
+  "Raigad",
+  "Ratnagiri",
+  "Sangli",
+  "Satara",
+  "Sindhudurg",
+  "Solapur",
+  "Thane",
+  "Wardha",
+  "Washim",
+  "Yavatmal"
+]
 const blocks = ['Block A','Block B','Block C','Block D']
 const religions = ['Hindu','Muslim','Christian','Sikh','Buddhist','Jain','Other']
 const schemes = ['Post Matric Scholarship','Pragati Scholarship','NTSE','National Merit Scholarship','Central Scholarship Scheme']
@@ -41,6 +78,28 @@ export default function ScholarshipForm() {
 
   const allowedCommunities = ['SC', 'ST', 'OBC', 'General'];
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleInstituteCodeBlur = async () => {
+    if (!form.instituteCode) return;
+    try {
+      const res = await fetch(`/api/auth/institute/info/${form.instituteCode}`, { credentials: 'include' });
+      
+      if (!res.headers.get("content-type")?.includes("application/json")) {
+        throw new Error("Invalid server response. Please ensure the backend is running and updated.");
+      }
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        set('instituteName', data.name);
+      } else {
+        set('instituteName', '');
+        alert(data.error || 'Institute not found');
+      }
+    } catch (err) {
+      console.error('Failed to fetch institute name', err);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -184,12 +243,12 @@ export default function ScholarshipForm() {
               <h2 className="section-title">Academic Details</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="form-label">Institute Name *</label>
-                  <input className="form-input" value={form.instituteName} onChange={e => set('instituteName', e.target.value)} required />
+                  <label className="form-label">Institute Code *</label>
+                  <input className="form-input" placeholder="e.g. NSP001" value={form.instituteCode} onChange={e => set('instituteCode', e.target.value)} onBlur={handleInstituteCodeBlur} required />
                 </div>
                 <div>
-                  <label className="form-label">Institute Code *</label>
-                  <input className="form-input" value={form.instituteCode} onChange={e => set('instituteCode', e.target.value)} required />
+                  <label className="form-label">Institute Name *</label>
+                  <input className="form-input bg-gray-100 cursor-not-allowed" placeholder="Auto-filled from Code" value={form.instituteName} readOnly required />
                 </div>
                 <div><label className="form-label">Present Class / Course *</label><input className="form-input" value={form.presentClass} onChange={e => set('presentClass', e.target.value)} required /></div>
                 <div><label className="form-label">Present Class / Course Year *</label><input className="form-input" placeholder="e.g. 2nd Year" value={form.classYear} onChange={e => set('classYear', e.target.value)} required /></div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -14,12 +14,6 @@ import {
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const mockApplications = [
-  { id: 'APP001', name: 'Rahul Sharma', scheme: 'Post Matric Scholarship', aadhar: 'XXXX-XXXX-1234', status: 'Pending' },
-  { id: 'APP002', name: 'Priya Patel', scheme: 'Pragati Scholarship', aadhar: 'XXXX-XXXX-5678', status: 'Pending' },
-  { id: 'APP003', name: 'Amit Kumar', scheme: 'NTSE', aadhar: 'XXXX-XXXX-9012', status: 'Pending' },
-]
 
 const barData = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
@@ -45,22 +39,34 @@ const barOptions = {
 };
 
 export default function InstituteDashboard() {
-  const [apps, setApps] = useState(mockApplications)
-  const [selected, setSelected] = useState(null)
-  const [bonafide, setBonafide] = useState(null)
+  const [apps, setApps] = useState([])
+  const [institute, setInstitute] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate();
 
-  const handleAction = (id, action) => {
-    setApps(prev => prev.map(a => a.id === id ? { ...a, status: action === 'verify' ? 'Forwarded to State' : 'Rejected' } : a))
-    setSelected(null)
-    alert(action === 'verify' ? 'Application forwarded to State Nodal Officer.' : 'Application rejected.')
-  }
+  useEffect(() => {
+    fetch('/api/me/institute', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => { if (data.institute) setInstitute(data.institute) })
+      .catch(err => console.error(err));
 
-  const statusColor = s =>
-    s === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-    s === 'Forwarded to State' ? 'bg-green-100 text-green-700' :
-    'bg-red-100 text-red-700'
+    fetch('/api/auth/institute/applications', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setApps(data.apps || []))
+      .catch(err => console.error(err));
+  }, []);
+
+  const pendingCount = apps.filter(a => a.status === 'InstitutePending').length;
+  const approvedCount = apps.filter(a => a.status !== 'InstitutePending' && a.status !== 'Rejected').length;
+  const rejectedCount = apps.filter(a => a.status === 'Rejected').length;
+
+  const appsPerScheme = apps.reduce((acc, app) => {
+    const scheme = app.data?.scheme || 'Unknown';
+    acc[scheme] = (acc[scheme] || 0) + 1;
+    return acc;
+  }, {});
+
+  const approvalRate = apps.length > 0 ? Math.round((approvedCount / apps.length) * 100) : 0;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -86,17 +92,17 @@ export default function InstituteDashboard() {
             <div className="bg-white rounded-lg shadow flex flex-col items-center p-4 border-t-4 border-yellow-400">
               <span className="text-2xl">⏳</span>
               <div className="text-xs text-gray-500 mt-1">Pending Verification</div>
-              <div className="text-xl font-bold text-yellow-600">{apps.filter(a => a.status === 'Pending').length}</div>
+              <div className="text-xl font-bold text-yellow-600">{pendingCount}</div>
             </div>
             <div className="bg-white rounded-lg shadow flex flex-col items-center p-4 border-t-4 border-green-500">
               <span className="text-2xl">✅</span>
               <div className="text-xs text-gray-500 mt-1">Approved</div>
-              <div className="text-xl font-bold text-green-700">{apps.filter(a => a.status === 'Forwarded to State').length}</div>
+              <div className="text-xl font-bold text-green-700">{approvedCount}</div>
             </div>
             <div className="bg-white rounded-lg shadow flex flex-col items-center p-4 border-t-4 border-red-500">
               <span className="text-2xl">❌</span>
               <div className="text-xs text-gray-500 mt-1">Rejected</div>
-              <div className="text-xl font-bold text-red-700">{apps.filter(a => a.status === 'Rejected').length}</div>
+              <div className="text-xl font-bold text-red-700">{rejectedCount}</div>
             </div>
           </div>
         </div>
@@ -107,8 +113,8 @@ export default function InstituteDashboard() {
           <div className={`lg:col-span-3 ${sidebarOpen ? 'block' : 'hidden'} lg:block`}>
             <div className="card border-l-4 border-primary mb-6">
               <div className="mb-4">
-                <p className="font-bold text-sm text-primary">Government Polytechnic</p>
-                <p className="text-xs text-gray-500">Institute Code: INST001</p>
+                <p className="font-bold text-sm text-primary">{institute?.name || 'Loading...'}</p>
+                <p className="text-xs text-gray-500">Institute Code: {institute?.instId || '...'}</p>
               </div>
               <nav className="space-y-1">
                 <button
@@ -136,16 +142,16 @@ export default function InstituteDashboard() {
                 <div>
                   <div className="font-bold text-sm mb-1">Applications per Scheme</div>
                   <ul className="text-xs text-gray-700 space-y-1">
-                    <li>Post Matric Scholarship: 12</li>
-                    <li>Pragati Scholarship: 8</li>
-                    <li>NTSE: 5</li>
-                    <li>National Merit Scholarship: 7</li>
-                    <li>Central Scholarship Scheme: 4</li>
+                    {Object.entries(appsPerScheme).length > 0 ? (
+                      Object.entries(appsPerScheme).map(([scheme, count]) => (
+                        <li key={scheme}>{scheme}: {count}</li>
+                      ))
+                    ) : <li>No applications yet</li>}
                   </ul>
                 </div>
                 <div>
                   <div className="font-bold text-sm mb-1">Approval Rate</div>
-                  <div className="text-2xl font-bold text-green-600">82%</div>
+                  <div className="text-2xl font-bold text-green-600">{approvalRate}%</div>
                   <div className="text-xs text-gray-500">(Current Month)</div>
                 </div>
                 <div>

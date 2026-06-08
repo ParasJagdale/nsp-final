@@ -26,32 +26,46 @@ Write-Host "✓ Backend started (PID: $($backendProc.Id))" -ForegroundColor Gree
 
 # Pre-test: Ensure Test Institute Exists
 Write-Host "`n[2.5] Preparing Test Data..." -ForegroundColor Yellow
-$seedScript = "
+$seedScript = @'
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import { Institute } from './server/src/models/Institute.js';
+import { Institute } from './src/models/Institute.js';
 import bcrypt from 'bcryptjs';
+
 async function seed() {
     await mongoose.connect(process.env.MONGODB_URI);
+
     const instId = 'NSP1005';
     const existing = await Institute.findOne({ instId });
+
     if (!existing) {
         const passwordHash = await bcrypt.hash('password123', 12);
-        await Institute.create({ 
-            instId, 
-            name: 'Test University', 
+        await Institute.create({
+            instId,
+            name: 'Test University',
             status: 'Pending',
-            passwordHash 
+            passwordHash
         });
         process.stdout.write('CREATED');
     } else {
         process.stdout.write('EXISTS');
     }
+
     await mongoose.disconnect();
     process.exit(0);
 }
-seed().catch(e => { console.error(e); process.exit(1); });"
-node --input-type=module -e "$seedScript"
+
+seed().catch(e => {
+    console.error(e);
+    process.exit(1);
+});
+'@
+$tempSeedPath = Join-Path $backendPath "temp-seed.js"
+Set-Content -Path $tempSeedPath -Value $seedScript -Encoding utf8
+Push-Location $backendPath
+node temp-seed.js
+Pop-Location
+Remove-Item -Path $tempSeedPath -ErrorAction SilentlyContinue
 
 # Test 1: State Officer Login
 Write-Host "`n[3] TEST 1: State Officer Login" -ForegroundColor Yellow
@@ -169,21 +183,32 @@ try {
 # Test 6: Verify in Database
 Write-Host "`n[8] TEST 6: Verify Institute Status in Database" -ForegroundColor Yellow
 try {
-    # We use a small temporary ESM script to verify status
-    $verifyScript = "
-    import 'dotenv/config';
-    import mongoose from 'mongoose';
-    import { Institute } from './server/src/models/Institute.js';
-    async function check() {
-        await mongoose.connect(process.env.MONGODB_URI);
-        const inst = await Institute.findOne({ instId: 'NSP1005' });
-        process.stdout.write(inst?.status || 'NOT_FOUND');
-        await mongoose.disconnect();
-        process.exit(0);
-    }
-    check().catch(e => { console.error(e); process.exit(1); });"
-    
-    $dbCheck = node --input-type=module -e "$verifyScript"
+$verifyScript = @'
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import { Institute } from './src/models/Institute.js';
+
+async function check() {
+    await mongoose.connect(process.env.MONGODB_URI);
+
+    const inst = await Institute.findOne({ instId: 'NSP1005' });
+    process.stdout.write(inst?.status || 'NOT_FOUND');
+
+    await mongoose.disconnect();
+    process.exit(0);
+}
+
+check().catch(e => {
+    console.error(e);
+    process.exit(1);
+});
+'@
+    $tempVerifyPath = Join-Path $backendPath "temp-verify.js"
+    Set-Content -Path $tempVerifyPath -Value $verifyScript -Encoding utf8
+    Push-Location $backendPath
+    $dbCheck = node temp-verify.js
+    Pop-Location
+    Remove-Item -Path $tempVerifyPath -ErrorAction SilentlyContinue
     
     if ($dbCheck -eq "Approved") {
         Write-Host "✓ Database confirms NSP1005 status: Approved" -ForegroundColor Green

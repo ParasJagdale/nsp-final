@@ -1,13 +1,13 @@
 import { Router } from 'express'
 import { z } from 'zod'
 
-import { requireStudentAuth, requireInstituteAuth } from '../middleware/auth.js'
+import { requireStudentAuth, requireInstituteAuth } from '../middleware/auth.js'  //only authenticated students and institute can access.
 import { Student } from '../models/Student.js'
 import { Institute } from '../models/Institute.js'
 
 export const meRouter = Router()
 
-const patchSchema = z
+const patchSchema = z    //to update the student profile only
   .object({
     state: z.string().min(1).optional(),
     district: z.string().min(1).optional(),
@@ -18,13 +18,13 @@ const patchSchema = z
     email: z.string().email().optional(),
     instituteCode: z.string().min(1).optional(),
     aadhar: z.string().min(12).max(12).optional(),
-    bankIfsc: z.string().min(5).optional(),
+    bankIfsc: z.string().regex(/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/, 'Invalid IFSC Code').optional(),
     bankAccount: z.string().min(6).optional(),
     bankName: z.string().min(2).optional(),
   })
   .strict()
 
-meRouter.get('/institute', requireInstituteAuth, async (req, res, next) => {
+meRouter.get('/institute', requireInstituteAuth, async (req, res, next) => {  //Fetching currently logged-in institute’s profile.
   try {
     console.log(`[me] Fetching profile for Institute ID: ${req.auth.instituteId}`)
     const institute = await Institute.findById(req.auth.instituteId).select('-passwordHash')
@@ -37,7 +37,7 @@ meRouter.get('/institute', requireInstituteAuth, async (req, res, next) => {
   }
 })
 
-meRouter.patch('/', requireStudentAuth, async (req, res, next) => {
+meRouter.patch('/', requireStudentAuth, async (req, res, next) => {  //Update the student's profile
   try {
     const patch = patchSchema.parse(req.body)
 

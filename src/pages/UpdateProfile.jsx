@@ -176,7 +176,7 @@ export default function UpdateProfile() {
               </div>
               <div>
                 <label className="form-label">Bank IFSC Code *</label>
-                <input className="form-input" value={form.bankIfsc} onChange={e => set('bankIfsc', e.target.value)} required />
+                <input className="form-input" value={form.bankIfsc} onChange={e => set('bankIfsc', e.target.value)} pattern="^[A-Za-z]{4}0[A-Za-z0-9]{6}$" placeholder="e.g. SBIN0001234" required />
               </div>
               <div>
                 <label className="form-label">Bank Account Number *</label>
