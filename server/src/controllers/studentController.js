@@ -120,7 +120,9 @@ export const forgotPassword = async (req, res, next) => {
       emailSent = true
     } catch (err) {
       console.error('[forgot] Failed to send OTP email', err)
-      return res.status(500).json({ error: 'Failed to send email' })
+      if (env.nodeEnv === 'production') {
+        return res.status(500).json({ error: 'Failed to send email' })
+      }
     }
 
     const response = { ok: true, smtpConfigured: Boolean(env.smtpHost && env.smtpUser && env.smtpPass), emailSent }

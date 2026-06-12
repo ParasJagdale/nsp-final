@@ -48,6 +48,10 @@ export default function InstituteRegister() {
   const [redirect, setRedirect] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [codeError, setCodeError] = useState('')
+  const [diseError, setDiseError] = useState('')
+  const [pincodeError, setPincodeError] = useState('')
+  const [mobileError, setMobileError] = useState('')
   const [form, setForm] = useState({
     category:'', name:'', state:'', district:'', code:'', dise:'', location:'Rural',
     type:'', uniState:'', uniName:'', admissionYear:'', password:'', confirmPassword:'',
@@ -61,6 +65,7 @@ export default function InstituteRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.agree) return alert('Please accept the declaration')
+    if (!/^NSP\d{3}$/.test(form.code)) return alert('Institute Code must be NSP followed by 3 digits (e.g., NSP001)')
     if (form.password !== form.confirmPassword) return alert('Passwords do not match')
 
     setLoading(true)
@@ -146,11 +151,35 @@ export default function InstituteRegister() {
                 </div>
                 <div>
                   <label className="form-label">Institute Code *</label>
-                  <input className="form-input" value={form.code} onChange={e => set('code', e.target.value)} required />
+                  <input
+                    className={`form-input ${codeError ? 'border-red-500' : ''}`}
+                    maxLength={6}
+                    placeholder="e.g. NSP001"
+                    value={form.code}
+                    onChange={e => {
+                      const val = e.target.value.toUpperCase(); // Force uppercase
+                      set('code', val);
+                      if (val.length > 0 && !/^NSP\d{3}$/.test(val)) {
+                        setCodeError('Format: NSP followed by 3 digits (e.g. NSP001)');
+                      } else {
+                        setCodeError('');
+                      }
+                    }}
+                    required
+                  />
+                  {codeError && <div className="text-xs text-red-600 mt-1">{codeError}</div>}
                 </div>
                 <div>
-                  <label className="form-label">DISE Code *</label>
-                  <input className="form-input" value={form.dise} onChange={e => set('dise', e.target.value)} required />
+                  <label className="form-label">DISE (District Information System for Education) Code *</label>
+                  <input className={`form-input ${diseError ? 'border-red-500' : ''}`} maxLength={11} pattern="\d{11}" value={form.dise} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    set('dise', val);
+                    if (val.length > 0 && val.length !== 11) setDiseError('DISE Code must be exactly 11 digits');
+                    else setDiseError('');
+                  }} required />
+                  {diseError && (
+                    <div className="text-xs text-red-600 mt-1">{diseError}</div>
+                  )}
                 </div>
                 <div>
                   <label className="form-label">Location *</label>
@@ -183,7 +212,7 @@ export default function InstituteRegister() {
                 </div>
                 <div>
                   <label className="form-label">Affiliated University / Board Name *</label>
-                  <input className="form-input" value={form.uniName} onChange={e => set('uniName', e.target.value)} required />
+                  <input className="form-input" placeholder="e.g. University of Mumbai, CBSE etc." value={form.uniName} onChange={e => set('uniName', e.target.value)} required />
                 </div>
                 <div>
                   <label className="form-label">Year Admission Started *</label>
@@ -249,7 +278,16 @@ export default function InstituteRegister() {
                     {districts.map(d => <option key={d}>{d}</option>)}
                   </select>
                 </div>
-                <div><label className="form-label">Pincode *</label><input className="form-input" maxLength={6} value={form.pincode} onChange={e => set('pincode', e.target.value)} required /></div>
+                <div>
+                  <label className="form-label">Pincode *</label>
+                  <input className={`form-input ${pincodeError ? 'border-red-500' : ''}`} maxLength={6} pattern="\d{6}" value={form.pincode} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    set('pincode', val);
+                    if (val.length > 0 && val.length !== 6) setPincodeError('Pincode must be exactly 6 digits');
+                    else setPincodeError('');
+                  }} required />
+                  {pincodeError && <div className="text-xs text-red-600 mt-1">{pincodeError}</div>}
+                </div>
               </div>
             </section>
 
@@ -258,8 +296,21 @@ export default function InstituteRegister() {
               <h2 className="section-title">Contact Details</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label className="form-label">Principal Name *</label><input className="form-input" value={form.principal} onChange={e => set('principal', e.target.value)} required /></div>
-                <div><label className="form-label">Mobile Number *</label><input className="form-input" maxLength={10} value={form.mobile} onChange={e => set('mobile', e.target.value)} required /></div>
-                <div><label className="form-label">Telephone</label><input className="form-input" value={form.telephone} onChange={e => set('telephone', e.target.value)} /></div>
+                <div>
+                  <label className="form-label">Mobile Number *</label>
+                  <input className={`form-input ${mobileError ? 'border-red-500' : ''}`} maxLength={10} pattern="\d{10}" value={form.mobile} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    set('mobile', val);
+                    if (val.length > 0 && val.length !== 10) setMobileError('Mobile Number must be exactly 10 digits');
+                    else setMobileError('');
+                  }} required />
+                  {mobileError && <div className="text-xs text-red-600 mt-1">{mobileError}</div>}
+                </div>
+                <div>
+                  <label className="form-label">Telephone</label>
+                  {/* onChange dynamically prevents entering alphabets/symbols, pattern ensures strictly numerical submission */}
+                  <input className="form-input" pattern="\d*" value={form.telephone} onChange={e => set('telephone', e.target.value.replace(/\D/g, ''))} />
+                </div>
               </div>
             </section>
 
